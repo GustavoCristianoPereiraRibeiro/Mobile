@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 
 export default function App() {
+  const [count, setCount] = useState(0);
   const [tarefaAtual, setTarefaAtual] = useState('');
   const [listaTarefas, setListaTarefas] = useState([]);
 
@@ -22,43 +24,73 @@ export default function App() {
     setTarefaAtual('');
   };
 
+  const salvarTeste = async () => {
+    try {
+      await AsyncStorage.setItem('chave_secreta', 'Felipe');
+      console.log('Teste salvo no cofre!');
+    } catch (error) {
+      console.error('Falha ao salvar o teste no AsyncStorage.', error);
+    }
+  };
+
+  const incrementarContador = () => {
+    setCount((contadorAtual) => contadorAtual + 1);
+    salvarTeste();
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
+      <Text style={styles.title}>Tarefas</Text>
+
+      <View style={styles.coresContainer}>
+        <View style={styles.vermelho} />
+        <View style={styles.verde} />
+        <View style={styles.azul} />
+      </View>
+
+      <Text>Nova Tarefa</Text>
+      <Text>{count}</Text>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          accessibilityLabel="Nova tarefa"
+          style={styles.input}
+          placeholder="Digite a anotação..."
+          value={tarefaAtual}
+          onChangeText={setTarefaAtual}
+          returnKeyType="done"
+          onSubmitEditing={adicionarTarefa}
+        />
+
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Adicionar tarefa"
+          onPress={adicionarTarefa}
+          style={styles.botaoContainer}
+        >
+          <Text style={styles.botao}>Adicionar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Incrementar contador e salvar teste"
+          onPress={incrementarContador}
+          style={styles.botaoContainer}
+        >
+          <Text style={styles.botao}>+</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
-        contentContainerStyle={styles.content}
+        style={styles.lista}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Checklist</Text>
-        <Text style={styles.subtitle}>Registre as peças que precisam de atenção.</Text>
-
-        <View style={styles.form}>
-          <TextInput
-            accessibilityLabel="Nova tarefa"
-            style={styles.input}
-            placeholder="Ex.: Sensor Queimado"
-            value={tarefaAtual}
-            onChangeText={setTarefaAtual}
-            returnKeyType="done"
-            onSubmitEditing={adicionarTarefa}
-          />
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Adicionar tarefa"
-            onPress={adicionarTarefa}
-            style={styles.addButton}
-          >
-            <Text style={styles.addButtonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.taskList}>
-          {listaTarefas.map((tarefa, index) => (
-            <View key={index} style={styles.taskCard}>
-              <Text style={styles.taskText}>{tarefa}</Text>
-            </View>
-          ))}
-        </View>
+        {listaTarefas.map((tarefa, index) => (
+          <View key={index} style={styles.itemLista}>
+            <Text>{tarefa}</Text>
+          </View>
+        ))}
       </ScrollView>
     </View>
   );
@@ -67,71 +99,62 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6f8',
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 64,
-    paddingBottom: 32,
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 10,
   },
   title: {
-    color: '#1f2937',
-    fontSize: 30,
+    fontSize: 22,
     fontWeight: 'bold',
   },
-  subtitle: {
-    color: '#6b7280',
-    fontSize: 15,
-    marginTop: 8,
-    marginBottom: 24,
+  coresContainer: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  form: {
+  vermelho: {
+    height: 60,
+    width: 60,
+    backgroundColor: 'red',
+  },
+  verde: {
+    height: 60,
+    width: 60,
+    backgroundColor: 'green',
+  },
+  azul: {
+    height: 60,
+    width: 60,
+    backgroundColor: 'blue',
+  },
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    width: '100%',
   },
   input: {
     flex: 1,
-    minHeight: 52,
+    fontWeight: 'bold',
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    fontSize: 16,
+    borderColor: 'black',
+    padding: 8,
+    borderRadius: 4,
   },
-  addButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#219653',
+  botaoContainer: {
+    padding: 8,
   },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 30,
-    lineHeight: 34,
-    fontWeight: '600',
+  botao: {
+    color: 'blue',
+    fontWeight: 'bold',
   },
-  taskList: {
-    gap: 12,
-    marginTop: 24,
+  lista: {
+    width: '100%',
+    marginTop: 10,
   },
-  taskCard: {
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  taskText: {
-    color: '#1f2937',
-    fontSize: 16,
+  itemLista: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
 });
