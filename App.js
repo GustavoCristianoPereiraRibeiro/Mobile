@@ -32,6 +32,8 @@ export default function App() {
   };
 
   const resgatarDadosLocal = async () => {
+    setTarefaAtual('');
+
     try {
       const listaString = await AsyncStorage.getItem('listaTarefas');
       if (listaString === null) {
