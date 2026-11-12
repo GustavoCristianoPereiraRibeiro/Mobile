@@ -15,6 +15,11 @@ export default function App() {
   const [tarefaAtual, setTarefaAtual] = useState('');
   const [listaTarefas, setListaTarefas] = useState([]);
 
+  const salvarDadosLocal = async (tarefasParaSalvar) => {
+    const listaString = JSON.stringify(tarefasParaSalvar);
+    await AsyncStorage.setItem('minhas_tarefas', listaString);
+  };
+
   const adicionarTarefa = async () => {
     const tarefa = tarefaAtual.trim();
     if (!tarefa) {
@@ -23,7 +28,7 @@ export default function App() {
 
     const novaLista = [...listaTarefas, tarefa];
     try {
-      await AsyncStorage.setItem('listaTarefas', JSON.stringify(novaLista));
+      await salvarDadosLocal(novaLista);
       setListaTarefas(novaLista);
       setTarefaAtual('');
     } catch (error) {
@@ -31,14 +36,27 @@ export default function App() {
     }
   };
 
-  const limparDadosLocal = async () => {
+  const resgatarDadosLocal = async () => {
     setTarefaAtual('');
 
     try {
-      await AsyncStorage.removeItem('listaTarefas');
-      setListaTarefas([]);
+      const textoLido = await AsyncStorage.getItem('minhas_tarefas');
+      if (textoLido === null) {
+        setListaTarefas([]);
+        return;
+      }
+
+      const tarefasSalvas = JSON.parse(textoLido);
+      if (
+        !Array.isArray(tarefasSalvas) ||
+        !tarefasSalvas.every((tarefa) => typeof tarefa === 'string')
+      ) {
+        throw new Error('A lista salva tem um formato inválido.');
+      }
+
+      setListaTarefas(tarefasSalvas);
     } catch (error) {
-      console.error('Falha ao apagar a lista de tarefas.', error);
+      console.error('Falha ao recuperar a lista de tarefas.', error);
     }
   };
 
@@ -80,8 +98,8 @@ export default function App() {
 
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Apagar todas as tarefas salvas"
-          onPress={limparDadosLocal}
+          accessibilityLabel="Recuperar tarefas salvas"
+          onPress={resgatarDadosLocal}
           style={styles.botaoContainer}
         >
           <Text style={styles.botao}>↻</Text>
