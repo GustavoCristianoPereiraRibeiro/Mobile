@@ -31,27 +31,14 @@ export default function App() {
     }
   };
 
-  const resgatarDadosLocal = async () => {
+  const limparDadosLocal = async () => {
     setTarefaAtual('');
 
     try {
-      const listaString = await AsyncStorage.getItem('listaTarefas');
-      if (listaString === null) {
-        setListaTarefas([]);
-        return;
-      }
-
-      const tarefasSalvas = JSON.parse(listaString);
-      if (
-        !Array.isArray(tarefasSalvas) ||
-        !tarefasSalvas.every((tarefa) => typeof tarefa === 'string')
-      ) {
-        throw new Error('A lista salva tem um formato inválido.');
-      }
-
-      setListaTarefas(tarefasSalvas);
+      await AsyncStorage.removeItem('listaTarefas');
+      setListaTarefas([]);
     } catch (error) {
-      console.error('Falha ao recuperar a lista de tarefas.', error);
+      console.error('Falha ao apagar a lista de tarefas.', error);
     }
   };
 
@@ -93,8 +80,8 @@ export default function App() {
 
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Recuperar tarefas salvas"
-          onPress={resgatarDadosLocal}
+          accessibilityLabel="Apagar todas as tarefas salvas"
+          onPress={limparDadosLocal}
           style={styles.botaoContainer}
         >
           <Text style={styles.botao}>↻</Text>
