@@ -11,31 +11,45 @@ import {
 } from 'react-native';
 
 export default function App() {
-  const [count, setCount] = useState(0);
   const [tarefaAtual, setTarefaAtual] = useState('');
   const [listaTarefas, setListaTarefas] = useState([]);
 
-  const adicionarTarefa = () => {
-    if (!tarefaAtual.trim()) {
+  const adicionarTarefa = async () => {
+    const tarefa = tarefaAtual.trim();
+    if (!tarefa) {
       return;
     }
 
-    setListaTarefas([...listaTarefas, tarefaAtual]);
-    setTarefaAtual('');
-  };
-
-  const salvarTeste = async () => {
+    const novaLista = [...listaTarefas, tarefa];
     try {
-      await AsyncStorage.setItem('chave_secreta', 'Felipe');
-      console.log('Teste salvo no cofre!');
+      await AsyncStorage.setItem('listaTarefas', JSON.stringify(novaLista));
+      setListaTarefas(novaLista);
+      setTarefaAtual('');
     } catch (error) {
-      console.error('Falha ao salvar o teste no AsyncStorage.', error);
+      console.error('Falha ao salvar a lista de tarefas.', error);
     }
   };
 
-  const incrementarContador = () => {
-    setCount((contadorAtual) => contadorAtual + 1);
-    salvarTeste();
+  const resgatarDadosLocal = async () => {
+    try {
+      const listaString = await AsyncStorage.getItem('listaTarefas');
+      if (listaString === null) {
+        setListaTarefas([]);
+        return;
+      }
+
+      const tarefasSalvas = JSON.parse(listaString);
+      if (
+        !Array.isArray(tarefasSalvas) ||
+        !tarefasSalvas.every((tarefa) => typeof tarefa === 'string')
+      ) {
+        throw new Error('A lista salva tem um formato inválido.');
+      }
+
+      setListaTarefas(tarefasSalvas);
+    } catch (error) {
+      console.error('Falha ao recuperar a lista de tarefas.', error);
+    }
   };
 
   return (
@@ -50,7 +64,6 @@ export default function App() {
       </View>
 
       <Text>Nova Tarefa</Text>
-      <Text>{count}</Text>
 
       <View style={styles.inputContainer}>
         <TextInput
@@ -60,7 +73,9 @@ export default function App() {
           value={tarefaAtual}
           onChangeText={setTarefaAtual}
           returnKeyType="done"
-          onSubmitEditing={adicionarTarefa}
+          onSubmitEditing={() => {
+            void adicionarTarefa();
+          }}
         />
 
         <TouchableOpacity
@@ -69,16 +84,16 @@ export default function App() {
           onPress={adicionarTarefa}
           style={styles.botaoContainer}
         >
-          <Text style={styles.botao}>Adicionar</Text>
+          <Text style={styles.botao}>+</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Incrementar contador e salvar teste"
-          onPress={incrementarContador}
+          accessibilityLabel="Recuperar tarefas salvas"
+          onPress={resgatarDadosLocal}
           style={styles.botaoContainer}
         >
-          <Text style={styles.botao}>+</Text>
+          <Text style={styles.botao}>↻</Text>
         </TouchableOpacity>
       </View>
 
