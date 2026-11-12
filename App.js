@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 export default function App() {
+  const [count] = useState(0);
   const [tarefaAtual, setTarefaAtual] = useState('');
   const [listaTarefas, setListaTarefas] = useState([]);
 
@@ -64,6 +65,7 @@ export default function App() {
       </View>
 
       <Text>Nova Tarefa</Text>
+      <Text>{count}</Text>
 
       <View style={styles.inputContainer}>
         <TextInput
